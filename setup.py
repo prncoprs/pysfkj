@@ -31,7 +31,8 @@ class CMakeBuild(build_ext):
         if not extdir.endswith(os.path.sep):
             extdir += os.path.sep
 
-        cfg = "Debug" if self.debug else "Release"
+        # cfg = "Debug" if self.debug else "Release"
+        cfg = "Debug"
 
         # CMake lets you override the generator - we need to check this.
         # Can be set with Conda-Build, for example.
@@ -42,17 +43,17 @@ class CMakeBuild(build_ext):
         # from Python.
         cmake_args = [
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
-            "-DEXAMPLE_VERSION_INFO={}".format(
-                self.distribution.get_version()),
+            # "-DEXAMPLE_VERSION_INFO={}".format(
+            #     self.distribution.get_version()),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),
             "-DCMAKE_POSITION_INDEPENDENT_CODE=on"
 
         ]
         build_args = []
 
-        if platform.system() == "Darwin":
-            cmake_args += ["-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl",
-                           "-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib"]
+        # if platform.system() == "Darwin":
+        #     cmake_args += ["-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl",
+        #                    "-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib"]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
@@ -88,6 +89,7 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
+        print(f"cmake ext.sourcedir:{ext.sourcedir} , cmake_args: {cmake_args}, cwd:{self.build_temp}")
         subprocess.check_call(
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
         )
@@ -104,6 +106,8 @@ class CMakeBuild(build_ext):
                 file_path = path.join(wrapper_path, file)
 
                 shutil.copy(file_path, extdir)
+                print(f" * copy {file_path} to {extdir}")
+        
 
 
 # The information here can also be placed in setup.cfg - better separation of
@@ -125,7 +129,7 @@ setup(
                  'Programming Language :: Python :: 3.9', ],
     python_requires='>=3.6',
     packages=find_packages(),
-    setup_requires=['setuptools-git-versioning'],
+    # setup_requires=['setuptools-git-versioning'],
     version_config={
         "template": "{tag}",
     },
