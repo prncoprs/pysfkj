@@ -1,6 +1,13 @@
 project(SFKJ)
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 cmake_policy(SET CMP0077 NEW)
+
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_EXTENSIONS OFF)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/local/include")
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -9,6 +16,8 @@ set(SFKJ_BINARY_ROOT "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(Boost_USE_STATIC_LIBS OFF CACHE BOOL "Use shared boost libraries" FORCE)
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "Use shared boost runtime" FORCE)
+
+find_package(pybind11 REQUIRED)
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Threads REQUIRED)
@@ -74,7 +83,9 @@ endif ()
 # we need to set these compile flags globally to compile compile libOTe and its dependencies
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -maes -msse2 -msse3 -msse4.1 -mpclmul -mavx -mavx2")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 
 set(ENABLE_SIMPLESTOT ON CACHE BOOL "Enable Simplest OT for Base OTs" FORCE)
 find_package(libOTe QUIET)
@@ -94,3 +105,5 @@ endif ()
 add_dependencies(libOTe relic_s)
 
 add_subdirectory(src)
+
+add_subdirectory(src/python_wrapper)

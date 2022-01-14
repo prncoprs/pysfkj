@@ -20,6 +20,7 @@
 #include "abycore/sharing/boolsharing.h"
 #include "abycore/sharing/sharing.h"
 #include <vector>
+
 using namespace osuCrypto;
 
 namespace ENCRYPTO{
@@ -205,13 +206,17 @@ void OEPServer(std::vector< uint32_t > indices, std::vector< std::vector<uint32_
     uint32_t N, M, weightcnt;
     M = indices.size();
     // communicate output size
-    // cout << "oep start" << endl;
-    auto sock = EstablishConnection(context.address, context.port, static_cast<e_role>(context.role));
+    // cout << "OEPServer: oep start EstablishConnection 1st send" << endl;
+    auto sock = EstablishConnection(context.address, context.port + 1, static_cast<e_role>(context.role));
+    // cout << "OEPServer: sock->Send:  M=" << M  << endl;
     sock->Send(&M, sizeof(uint32_t));
+    sock->Close();
+    // cout << "OEPServer: oep start EstablishConnection 2nd recv" << endl;
+    sock = EstablishConnection(context.address, context.port, static_cast<e_role>(context.role));
     sock->Receive(&N, sizeof(uint32_t));
     sock->Receive(&weightcnt, sizeof(uint32_t));
     sock->Close();
-    // cout << "oep size" << N << ' ' << M << ' ' << weightcnt << endl;
+    // cout << "OEPServer: oep size N=" << N << " M=" << M << " weightcnt=" << weightcnt << endl;
     uint32_t oriM = M;
     if (M < N) {
         M = N;
@@ -285,7 +290,7 @@ void OEPServer(std::vector< uint32_t > indices, std::vector< std::vector<uint32_
     }
 
     auto OT_end_time = std::chrono::system_clock::now();
-    // cout << "OT " << M * weightcnt << " elements, take " << 1.0 * (OT_end_time - OT_start_time).count() / CLOCKS_PER_SEC << "s, transmit " << recverChl.getTotalDataRecv() / 1024.0 / 1024.0 << "MB" << endl;
+    // cout << "OEPServer OT " << M * weightcnt << " elements, take " << 1.0 * (OT_end_time - OT_start_time).count() / CLOCKS_PER_SEC << "s, transmit " << recverChl.getTotalDataRecv() / 1024.0 / 1024.0 << "MB" << endl;
 
     vector<uint32_t> secondPermu(M), locid(M);
     vector<bool> usedLoc(M);
@@ -366,12 +371,18 @@ void OEPClient(std::vector< std::vector<uint32_t> > weights, std::vector< std::v
     N = weights.size();
     weightcnt = weights[0].size();
     // communicate output size
-    auto sock = EstablishConnection(context.address, context.port, static_cast<e_role>(context.role));
-    sock->Receive(&M, sizeof(uint32_t));
+    // cout << "OEPClient: start EstablishConnection 1st sock recv" << endl;
+    auto sock = EstablishConnection(context.address, context.port + 1, static_cast<e_role>(context.role));
+    // cout << "OEPClient: M=" << M << endl;
+    size_t rec_num = sock->Receive(&M, sizeof(uint32_t));
+    // cout << "OEPClient: sock->Receive  M=" << M << " rec_num=" << rec_num << endl;
+    sock->Close();
+    // cout << "OEPClient: start EstablishConnection 2nd sock send" << endl;
+    sock = EstablishConnection(context.address, context.port, static_cast<e_role>(context.role));
     sock->Send(&N, sizeof(uint32_t));
     sock->Send(&weightcnt, sizeof(uint32_t));
     sock->Close();
-    // cout << "oep size" << N << ' ' << M << ' ' << weightcnt << endl;
+    // cout << "OEPClient: oep size  N=" << N << " M=" << M << " weightcnt=" << weightcnt << endl;
     uint32_t oriM = M;
     if (M < N) {
         M = N;
@@ -426,7 +437,7 @@ void OEPClient(std::vector< std::vector<uint32_t> > weights, std::vector< std::v
     }    
     sender.sendChosen(sendMessages, prng, senderChl);
     auto OT_end_time = std::chrono::system_clock::now();
-    // cout << "OT " << M * weightcnt << " elements, take " << 1.0 * (OT_end_time - OT_start_time).count() / CLOCKS_PER_SEC << "s, transmit " << senderChl.getTotalDataSent() / 1024.0 / 1024.0 << "MB" << endl;
+    // cout << "OEPClient: OT " << M * weightcnt << " elements, take " << 1.0 * (OT_end_time - OT_start_time).count() / CLOCKS_PER_SEC << "s, transmit " << senderChl.getTotalDataSent() / 1024.0 / 1024.0 << "MB" << endl;
 
     std::vector< std::vector<uint32_t> > values2(M);
     outputs.resize(M);

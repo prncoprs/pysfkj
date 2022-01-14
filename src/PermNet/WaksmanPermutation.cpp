@@ -19,6 +19,8 @@
 
 PermutationNetwork::WaksmanPermutation::~WaksmanPermutation() {
 	// TODO Auto-generated destructor stub
+	delete b1;
+	delete b2;
 }
 
 uint32_t estimateGates(uint32_t numGates) {

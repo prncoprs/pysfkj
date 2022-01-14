@@ -152,12 +152,24 @@ uint64_t permutation_network(e_role role, const std::string& address, uint16_t p
 	// 	}
 	// }
 
-	// delete party;
+	delete party;
 	// for (uint32_t i=0; i<weightcnt; ++i) {
 	// 	delete shr_val_set[i];
 	// 	delete shr_out[i];
 	// 	delete new_out[i];
 	// }
+	for (uint32_t wid = 0; wid < weightcnt; ++wid) {
+		for (uint32_t i = 0; i < neles; ++i) {
+			delete shr_val_set[wid][i];
+			delete shr_out[wid][i];
+			delete new_out[wid][i];
+		}
+	}
+	for (uint32_t i = 0; i < weightcnt; ++i) {
+		free(shr_val_set[i]);
+		free(shr_out[i]);
+		free(new_out[i]);
+	}
 
 	return comm_size;
 }
